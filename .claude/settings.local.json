@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod +x /Users/isa/Anicca/setup.sh)",
+      "Bash(command -v xcodegen)",
+      "Bash(command -v brew)",
+      "Bash(brew install *)",
+      "Bash(xcodegen generate *)",
+      "Bash(xcodebuild -project Anicca.xcodeproj -scheme Anicca -destination 'generic/platform=iOS Simulator' -showBuildSettings)",
+      "Bash(xcodebuild -project Anicca.xcodeproj -scheme Anicca -destination 'generic/platform=iOS Simulator' -configuration Debug build)"
+    ]
+  }
+}
