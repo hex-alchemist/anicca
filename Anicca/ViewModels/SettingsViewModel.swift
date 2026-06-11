@@ -46,7 +46,7 @@ final class SettingsViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Display Name (debounced)
+    // MARK: - Display Name (debounced & immediate)
 
     func saveDisplayNameDebounced() {
         nameDebounceTask?.cancel()
@@ -55,6 +55,14 @@ final class SettingsViewModel: ObservableObject {
             try? await Task.sleep(nanoseconds: 500_000_000)
             guard !Task.isCancelled else { return }
             await self?.auth.updateDisplayName(captured)
+        }
+    }
+
+    func saveDisplayNameImmediate() {
+        nameDebounceTask?.cancel()
+        let captured = displayName
+        Task {
+            await auth.updateDisplayName(captured)
         }
     }
 

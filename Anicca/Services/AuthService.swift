@@ -168,7 +168,13 @@ final class AuthService: NSObject, ObservableObject {
             display_name: displayName,
             plan_tier: PlanTier.free.rawValue
         )
-        try await client.from("profiles").upsert(insert, onConflict: "id").execute()
+        do {
+            try await client.from("profiles").upsert(insert, onConflict: "id").execute()
+            print("🟢 AuthService: Successfully ensured profile exists in Supabase.")
+        } catch {
+            print("🔴 AuthService.ensureProfileExists failed: \(error)")
+            throw error
+        }
     }
 
     private func loadProfile(userId: String, email: String) async {
@@ -194,7 +200,9 @@ final class AuthService: NSObject, ObservableObject {
                 createdAt: row.created_at
             )
             self.currentUser = profile
+            print("🟢 AuthService: Successfully loaded profile from Supabase for \(email). Display name: \(row.display_name ?? "nil")")
         } catch {
+            print("🔴 AuthService.loadProfile failed: \(error). Falling back to synthesized local profile.")
             // Fallback: synthesize a local profile so the app still loads.
             self.currentUser = UserProfile(id: userId, email: email)
         }
@@ -209,7 +217,9 @@ final class AuthService: NSObject, ObservableObject {
         do {
             try await client.from("profiles").update(update).eq("id", value: userId).execute()
             currentUser?.displayName = name
+            print("🟢 AuthService: Successfully updated display name to '\(name)' in Supabase.")
         } catch {
+            print("🔴 AuthService.updateDisplayName failed: \(error). Using local-only fallback.")
             // Silent — fall back to local
             currentUser?.displayName = name
         }
@@ -221,7 +231,9 @@ final class AuthService: NSObject, ObservableObject {
         update.plan_tier = tier.rawValue
         do {
             try await client.from("profiles").update(update).eq("id", value: userId).execute()
+            print("🟢 AuthService: Successfully updated plan tier to '\(tier.rawValue)' in Supabase.")
         } catch {
+            print("🔴 AuthService.updatePlanTier failed: \(error)")
             // Silent — RevenueCat is source of truth so cache locally
         }
         currentUser?.planTier = tier
@@ -234,7 +246,9 @@ final class AuthService: NSObject, ObservableObject {
         update.reminder_time = time
         do {
             try await client.from("profiles").update(update).eq("id", value: userId).execute()
+            print("🟢 AuthService: Successfully updated reminder settings in Supabase.")
         } catch {
+            print("🔴 AuthService.updateReminderSettings failed: \(error)")
             // ignore — best effort
         }
         currentUser?.reminderEnabled = enabled
@@ -249,7 +263,9 @@ final class AuthService: NSObject, ObservableObject {
         update.last_check_in_date = lastDate
         do {
             try await client.from("profiles").update(update).eq("id", value: userId).execute()
+            print("🟢 AuthService: Successfully updated streak/checkin stats in Supabase.")
         } catch {
+            print("🔴 AuthService.updateStreakStats failed: \(error)")
             // ignore — best effort
         }
         currentUser?.checkInStreak = streak

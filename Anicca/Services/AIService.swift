@@ -13,7 +13,7 @@ actor AIService {
     static let shared = AIService()
 
     private let apiKey: String
-    private let endpoint = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent")!
+    private let endpoint = URL(string: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent")!
     private let session: URLSession
     private let client: SupabaseClient
 
@@ -76,6 +76,7 @@ actor AIService {
             await cache(parsed, userId: userId, weekStart: weekStart)
             return parsed
         } catch {
+            print("🔴 AIService.generateWeeklyInsight failed: \(error). Falling back to handcrafted insight.")
             // Fallback to high-quality handcrafted weekly insights if the Gemini API key is invalid/unavailable
             return generateHandcraftedWeeklyInsight(dominantCenter: dominantCenter, entries: entries, weekStart: weekStart)
         }
@@ -214,8 +215,13 @@ actor AIService {
             "generationConfig": [
                 "temperature": 0.7,
                 "topP": 0.9,
-                "maxOutputTokens": 600,
-                "responseMimeType": "application/json"
+                "maxOutputTokens": 600
+            ],
+            "safetySettings": [
+                ["category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"],
+                ["category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"],
+                ["category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"],
+                ["category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"]
             ]
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])

@@ -74,6 +74,9 @@ struct SettingsView: View {
         } message: {
             Text("Enable notifications in iOS Settings to receive reminders.")
         }
+        .onDisappear {
+            viewModel.saveDisplayNameImmediate()
+        }
     }
 
     // MARK: - Sections
@@ -98,8 +101,15 @@ struct SettingsView: View {
                             .onChange(of: viewModel.displayName) { _, _ in
                                 viewModel.saveDisplayNameDebounced()
                             }
+                            .onChange(of: nameFieldFocused) { _, isFocused in
+                                if !isFocused {
+                                    isEditingName = false
+                                    viewModel.saveDisplayNameImmediate()
+                                }
+                            }
                             .onSubmit {
                                 isEditingName = false
+                                viewModel.saveDisplayNameImmediate()
                             }
                     } else {
                         Button {
