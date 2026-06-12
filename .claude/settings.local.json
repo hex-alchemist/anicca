@@ -7,7 +7,10 @@
       "Bash(brew install *)",
       "Bash(xcodegen generate *)",
       "Bash(xcodebuild -project Anicca.xcodeproj -scheme Anicca -destination 'generic/platform=iOS Simulator' -showBuildSettings)",
-      "Bash(xcodebuild -project Anicca.xcodeproj -scheme Anicca -destination 'generic/platform=iOS Simulator' -configuration Debug build)"
+      "Bash(xcodebuild -project Anicca.xcodeproj -scheme Anicca -destination 'generic/platform=iOS Simulator' -configuration Debug build)",
+      "mcp__7eaa0193-c374-4dc9-8dc1-67aa324f460d__list_teams",
+      "mcp__7eaa0193-c374-4dc9-8dc1-67aa324f460d__save_issue",
+      "Bash(git checkout *)"
     ]
   }
 }
