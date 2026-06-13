@@ -9,6 +9,11 @@ struct FreeTextEntryView: View {
     var body: some View {
         ZStack {
             MeshGradientBackground()
+            .ignoresSafeArea()
+            .contentShape(Rectangle())
+            .onTapGesture {
+                isTextFocused = false
+            }
             ScrollView {
                 VStack(alignment: .leading, spacing: AniccaTheme.Spacing.s24) {
                     // MARK: Header
@@ -86,8 +91,24 @@ struct FreeTextEntryView: View {
         }
         .navigationTitle("Check-in #\(viewModel.nextCheckInNumber)")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Cancel") {
+                    isTextFocused = false
+                    viewModel.reset()
+                }
+            }
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+
+                Button("Done") {
+                    isTextFocused = false
+                }
+            }
+        }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                guard viewModel.entryMode == .freeText else { return }
                 isTextFocused = true
             }
         }
