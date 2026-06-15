@@ -5,6 +5,12 @@ import CryptoKit
 import GoogleSignIn
 import UIKit
 
+enum AuthProvider: String {
+    case apple = "apple"
+    case google = "google"
+    case email = "email"
+}
+
 @MainActor
 final class AuthService: NSObject, ObservableObject {
     static let shared = AuthService()
@@ -13,6 +19,10 @@ final class AuthService: NSObject, ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var authProvider: AuthProvider?
+
+    private var deleteAccountNonce: String?
+    private var pendingDeleteContinuation: CheckedContinuation<String, Error>?
 
     private let client: SupabaseClient
     private var appleNonce: String?
@@ -29,10 +39,21 @@ final class AuthService: NSObject, ObservableObject {
         do {
             let session = try await client.auth.session
             await loadProfile(userId: session.user.id.uuidString, email: session.user.email ?? "")
+
+            // Detect auth provider
+            if session.user.appMetadata["provider"] as? String == "apple" {
+                self.authProvider = .apple
+            } else if session.user.appMetadata["provider"] as? String == "google" {
+                self.authProvider = .google
+            } else {
+                self.authProvider = .email
+            }
+
             self.isAuthenticated = true
         } catch {
             self.isAuthenticated = false
             self.currentUser = nil
+            self.authProvider = nil
         }
     }
 
@@ -118,6 +139,51 @@ final class AuthService: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Re-authentication
+
+    func reauthenticateWithApple(presentationContext: ASPresentationAnchor) async throws -> String {
+        let nonce = Self.randomNonceString()
+        self.deleteAccountNonce = nonce
+        let hashedNonce = Self.sha256(nonce)
+
+        let request = ASAuthorizationAppleIDProvider().createRequest()
+        request.requestedScopes = [.email]
+        request.nonce = hashedNonce
+
+        return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
+            self.pendingDeleteContinuation = continuation
+            let controller = ASAuthorizationController(authorizationRequests: [request])
+            controller.delegate = self
+            controller.presentationContextProvider = self
+            controller.performRequests()
+        }
+    }
+
+    func reauthenticateWithGoogle(presenting: UIViewController) async throws -> String {
+        if GIDSignIn.sharedInstance.configuration == nil, !AppConfig.googleClientID.isEmpty {
+            GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: AppConfig.googleClientID)
+        }
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presenting)
+            guard let idToken = result.user.idToken?.tokenString else {
+                throw AppError.authFailed("Could not obtain Google ID token.")
+            }
+            return idToken
+        } catch {
+            print("🔴 Google re-authentication error: \(error)")
+            throw SupabaseErrorMapper.map(error)
+        }
+    }
+
+    func validateEmailPassword(_ password: String) async throws {
+        guard let email = currentUser?.email else { throw AppError.notAuthenticated }
+        do {
+            _ = try await client.auth.signIn(email: email, password: password)
+        } catch {
+            throw AppError.authFailed("Incorrect password.")
+        }
+    }
+
     // MARK: - Sign Out
 
     func signOut() async throws {
@@ -132,19 +198,36 @@ final class AuthService: NSObject, ObservableObject {
 
     // MARK: - Delete Account
 
-    func deleteAccount() async throws {
+    func deleteAccount(
+        withAppleIDToken idToken: String? = nil,
+        googleIDToken: String? = nil,
+        emailPassword: String? = nil
+    ) async throws {
         guard let userId = currentUser?.id else { throw AppError.notAuthenticated }
-        // Delete profile row — cascade removes related rows via FK constraints.
+        guard let session = try await client.auth.session else { throw AppError.notAuthenticated }
+
+        let jwt = session.accessToken
+
         do {
-            try await client
-                .from("profiles")
-                .delete()
-                .eq("id", value: userId)
-                .execute()
+            let response = try await client.functions.invoke(
+                "delete-account",
+                options: FunctionInvokeOptions(
+                    headers: ["Authorization": "Bearer \(jwt)"],
+                    body: [
+                        "userId": userId,
+                        "appleIDToken": idToken as Any,
+                        "googleIDToken": googleIDToken as Any,
+                        "emailPassword": emailPassword as Any
+                    ]
+                )
+            )
+
             try await client.auth.signOut()
             self.currentUser = nil
             self.isAuthenticated = false
+            self.authProvider = nil
         } catch {
+            print("🔴 AuthService.deleteAccount failed: \(error)")
             throw SupabaseErrorMapper.map(error)
         }
     }
@@ -321,12 +404,23 @@ extension AuthService: ASAuthorizationControllerDelegate, ASAuthorizationControl
                 let identityToken = String(data: identityTokenData, encoding: .utf8),
                 let nonce = self.appleNonce
             else {
-                self.pendingAppleContinuation?.resume(throwing: AppError.authFailed("Apple Sign In failed."))
-                self.pendingAppleContinuation = nil
+                if self.pendingDeleteContinuation != nil {
+                    self.pendingDeleteContinuation?.resume(throwing: AppError.authFailed("Apple re-authentication failed."))
+                    self.pendingDeleteContinuation = nil
+                } else {
+                    self.pendingAppleContinuation?.resume(throwing: AppError.authFailed("Apple Sign In failed."))
+                    self.pendingAppleContinuation = nil
+                }
                 return
             }
 
             do {
+                if self.pendingDeleteContinuation != nil {
+                    self.pendingDeleteContinuation?.resume(returning: identityToken)
+                    self.pendingDeleteContinuation = nil
+                    return
+                }
+
                 let session = try await client.auth.signInWithIdToken(
                     credentials: .init(provider: .apple, idToken: identityToken, nonce: nonce)
                 )
@@ -342,9 +436,15 @@ extension AuthService: ASAuthorizationControllerDelegate, ASAuthorizationControl
                 try? await self.ensureProfileExists(userId: session.user.id.uuidString, email: email, displayName: displayName)
                 await self.loadProfile(userId: session.user.id.uuidString, email: email)
                 self.isAuthenticated = true
+                self.authProvider = .apple
                 self.pendingAppleContinuation?.resume(returning: ())
             } catch {
-                self.pendingAppleContinuation?.resume(throwing: SupabaseErrorMapper.map(error))
+                if self.pendingDeleteContinuation != nil {
+                    self.pendingDeleteContinuation?.resume(throwing: error)
+                    self.pendingDeleteContinuation = nil
+                } else {
+                    self.pendingAppleContinuation?.resume(throwing: SupabaseErrorMapper.map(error))
+                }
             }
             self.pendingAppleContinuation = nil
         }
