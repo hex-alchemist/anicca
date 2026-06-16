@@ -204,21 +204,28 @@ final class AuthService: NSObject, ObservableObject {
         emailPassword: String? = nil
     ) async throws {
         guard let userId = currentUser?.id else { throw AppError.notAuthenticated }
-        guard let session = try await client.auth.session else { throw AppError.notAuthenticated }
+        guard let session = try? await client.auth.session else { throw AppError.notAuthenticated }
 
         let jwt = session.accessToken
+
+        struct DeleteAccountPayload: Encodable {
+            let userId: String
+            let appleIDToken: String?
+            let googleIDToken: String?
+            let emailPassword: String?
+        }
 
         do {
             let response = try await client.functions.invoke(
                 "delete-account",
                 options: FunctionInvokeOptions(
                     headers: ["Authorization": "Bearer \(jwt)"],
-                    body: [
-                        "userId": userId,
-                        "appleIDToken": idToken as Any,
-                        "googleIDToken": googleIDToken as Any,
-                        "emailPassword": emailPassword as Any
-                    ]
+                    body: DeleteAccountPayload(
+                        userId: userId,
+                        appleIDToken: idToken,
+                        googleIDToken: googleIDToken,
+                        emailPassword: emailPassword
+                    )
                 )
             )
 
