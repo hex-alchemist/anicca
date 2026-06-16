@@ -55,7 +55,6 @@
 		D7B2EC9CF4001486CEA10F9F /* RevenueCatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14826F1B8CA2AFFC7FE756F9 /* RevenueCatService.swift */; };
 		DC4B54CCF31555FB095B4AF8 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54E0D2A1D4A8289388972821 /* Color+Hex.swift */; };
 		E1BBDE98E113C8784A0B5CB1 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B310CD5B11B05136310BD4C4 /* SupabaseConfig.swift */; };
-		E574D53093719D1557CA83E8 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E53AA29EAF0DE1059F12A2E1 /* StoreKit.framework */; };
 		E7F47D70BF7123CF5F6B0E5D /* PDFKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E2B55427641AE814E4DAE3CB /* PDFKit.framework */; };
 		E950629B5A91127417D11262 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 771AC0976E6B39D7B33EBE57 /* Supabase */; };
 		F7B356A6315DC7C1D6657F79 /* EnergyCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5910CDFF9E547CB710F4F7 /* EnergyCenter.swift */; };
@@ -88,7 +87,7 @@
 		64F78FB0EA8462762DD55B93 /* View+Modifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Modifiers.swift"; sourceTree = "<group>"; };
 		6F9150B2E7FDD9A828F458E0 /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
 		7400B0868CBFA9D83617E1BA /* AIInsight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsight.swift; sourceTree = "<group>"; };
-		7CCA1667BFF9DE5129F24A74 /* Anicca.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Anicca.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7CCA1667BFF9DE5129F24A74 /* Anicca.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Anicca.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8647CF3AFBB87817B580F41D /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 		87D552810F1875A6CD2CD43E /* CheckInService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckInService.swift; sourceTree = "<group>"; };
 		87D6616F7613D883D2C800FF /* EmotionMappingResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmotionMappingResultView.swift; sourceTree = "<group>"; };
@@ -112,7 +111,6 @@
 		DD97A4D63F2FC843079074D5 /* Strings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Strings.swift; sourceTree = "<group>"; };
 		E240FBF57739C474212AB59B /* InsightsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsService.swift; sourceTree = "<group>"; };
 		E2B55427641AE814E4DAE3CB /* PDFKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PDFKit.framework; path = System/Library/Frameworks/PDFKit.framework; sourceTree = SDKROOT; };
-		E53AA29EAF0DE1059F12A2E1 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		E5DF3908552F9872F00AE976 /* Emotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Emotion.swift; sourceTree = "<group>"; };
 		E6270D41609DA7BED3B2D0A4 /* AniccaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AniccaApp.swift; sourceTree = "<group>"; };
 		EA20A2F2E091A6F74F4A9938 /* FreeTextEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FreeTextEntryView.swift; sourceTree = "<group>"; };
@@ -131,7 +129,6 @@
 				6535E2C7BAEAF123D1D20E79 /* RevenueCat in Frameworks */,
 				9EA77CBD4E6B45B37B902AED /* GoogleSignIn in Frameworks */,
 				5A1AD187B72F9E2E77E6DBD5 /* AuthenticationServices.framework in Frameworks */,
-				E574D53093719D1557CA83E8 /* StoreKit.framework in Frameworks */,
 				FD2DCC1F1B33C0FC65327F7D /* SafariServices.framework in Frameworks */,
 				4302AFF6ECB5821463F5B137 /* UserNotifications.framework in Frameworks */,
 				E7F47D70BF7123CF5F6B0E5D /* PDFKit.framework in Frameworks */,
@@ -195,6 +192,14 @@
 				C4D8CABD085A7EDB138E3697 /* UserProfile.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		4A039B7C2FDDBA8D00ECC8C6 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				"TEMP_4454E4EA-FB6A-4CDA-9735-AA9C599E177F" /* Secrets.xcconfig */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		4AC44F15BB85087B26CB6315 /* Extensions */ = {
@@ -262,7 +267,6 @@
 				236DAABFE5F614F16DC723A1 /* AuthenticationServices.framework */,
 				E2B55427641AE814E4DAE3CB /* PDFKit.framework */,
 				D44E82902DEFC3D36E988A2C /* SafariServices.framework */,
-				E53AA29EAF0DE1059F12A2E1 /* StoreKit.framework */,
 				0E60F1C25580A43C0C34D290 /* UserNotifications.framework */,
 			);
 			name = Frameworks;
@@ -301,6 +305,7 @@
 				C60EC0E91404B93081BA76C8 /* Anicca */,
 				751320BAB7A124630BB5595D /* Frameworks */,
 				C6C9A2CBF494A54A13C2C3BD /* Products */,
+				4A039B7C2FDDBA8D00ECC8C6 /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -353,14 +358,6 @@
 			path = Paywall;
 			sourceTree = "<group>";
 		};
-		"TEMP_1CFD2ABD-9BE7-403F-809B-63AFDFE6DD05" /* anicca */ = {
-			isa = PBXGroup;
-			children = (
-				"TEMP_4454E4EA-FB6A-4CDA-9735-AA9C599E177F" /* Secrets.xcconfig */,
-			);
-			path = anicca;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -394,8 +391,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 03517683D6688BAB63A6428D /* Build configuration list for PBXProject "Anicca" */;
 			developmentRegion = en;
@@ -523,12 +518,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P788RWL6YN;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Anicca/Resources/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.screensagestudios.anicca;
+				PRODUCT_BUNDLE_IDENTIFIER = screenseiji.anicca;
 				PRODUCT_NAME = Anicca;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
@@ -541,12 +537,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P788RWL6YN;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Anicca/Resources/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.screensagestudios.anicca;
+				PRODUCT_BUNDLE_IDENTIFIER = screenseiji.anicca;
 				PRODUCT_NAME = Anicca;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
