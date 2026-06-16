@@ -50,19 +50,29 @@ struct SettingsView: View {
         }
         .alert("Are you sure?", isPresented: $viewModel.showFirstDeleteAlert) {
             Button("Continue", role: .destructive) {
-                viewModel.showFinalDeleteAlert = true
+                Task { await viewModel.initiateDeleteFlow() }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Deleting your account removes all your check-ins.")
+            Text("Deleting your account removes all your check-ins. You'll need to re-authenticate.")
         }
-        .alert("This is permanent.", isPresented: $viewModel.showFinalDeleteAlert) {
+        .alert("Confirm Password", isPresented: $viewModel.showPasswordPrompt) {
+            SecureField("Password", text: $viewModel.deleteAccountPassword)
             Button("Delete Forever", role: .destructive) {
-                Task { await viewModel.confirmDelete() }
+                Task {
+                    await viewModel.confirmDeleteWithPassword(viewModel.deleteAccountPassword)
+                }
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel) {
+                viewModel.deleteAccountPassword = ""
+            }
         } message: {
-            Text("All your data will be permanently deleted.")
+            Text("Enter your password to confirm account deletion. This is permanent.")
+        }
+        .alert("Error", isPresented: .constant(viewModel.errorMessage != nil)) {
+            Button("OK") { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
         }
         .alert("Notifications are off", isPresented: $viewModel.notificationsBlocked) {
             Button("Open Settings") {
@@ -325,12 +335,21 @@ struct SettingsView: View {
         Button {
             viewModel.showFirstDeleteAlert = true
         } label: {
-            Text(Strings.Settings.deleteAccount)
-                .foregroundStyle(AniccaTheme.error)
-                .font(.system(size: 15, weight: .medium))
-                .padding(.vertical, AniccaTheme.Spacing.s12)
-                .frame(maxWidth: .infinity)
+            if viewModel.isDeleting || viewModel.isReauthenticating {
+                HStack {
+                    ProgressView()
+                        .tint(AniccaTheme.error)
+                    Text(Strings.Settings.deleteAccount)
+                }
+            } else {
+                Text(Strings.Settings.deleteAccount)
+            }
         }
+        .disabled(viewModel.isDeleting || viewModel.isReauthenticating)
+        .foregroundStyle(AniccaTheme.error)
+        .font(.system(size: 15, weight: .medium))
+        .padding(.vertical, AniccaTheme.Spacing.s12)
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Helpers

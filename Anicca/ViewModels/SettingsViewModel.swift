@@ -16,6 +16,10 @@ final class SettingsViewModel: ObservableObject {
     @Published var showFirstDeleteAlert: Bool = false
     @Published var showFinalDeleteAlert: Bool = false
     @Published var notificationsBlocked: Bool = false
+    @Published var showPasswordPrompt: Bool = false
+    @Published var deleteAccountPassword: String = ""
+    @Published var deleteAccountPasswordError: String?
+    @Published var isReauthenticating: Bool = false
 
     private var nameDebounceTask: Task<Void, Never>?
     private let auth = AuthService.shared
@@ -103,11 +107,67 @@ final class SettingsViewModel: ObservableObject {
 
     // MARK: - Delete Account
 
-    func confirmDelete() async {
+    func initiateDeleteFlow() async {
+        isReauthenticating = true
+        defer { isReauthenticating = false }
+
+        guard let provider = auth.authProvider else {
+            errorMessage = "Unable to determine auth method."
+            return
+        }
+
+        do {
+            switch provider {
+            case .apple:
+                try await reauthenticateAndDeleteApple()
+            case .google:
+                try await reauthenticateAndDeleteGoogle()
+            case .email:
+                showPasswordPrompt = true
+            }
+        } catch let error as AppError {
+            errorMessage = error.errorDescription
+        } catch {
+            errorMessage = Strings.Errors.generic
+        }
+    }
+
+    private func reauthenticateAndDeleteApple() async throws {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+            let window = windowScene.windows.first else {
+            throw AppError.authFailed("Could not find window for Apple Sign In.")
+        }
+
+        let idToken = try await auth.reauthenticateWithApple(presentationContext: window)
+
         isDeleting = true
         defer { isDeleting = false }
+
+        try await auth.deleteAccount(withAppleIDToken: idToken)
+    }
+
+    private func reauthenticateAndDeleteGoogle() async throws {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+            let viewController = windowScene.windows.first?.rootViewController else {
+            throw AppError.authFailed("Could not find view controller for Google Sign In.")
+        }
+
+        let idToken = try await auth.reauthenticateWithGoogle(presenting: viewController)
+
+        isDeleting = true
+        defer { isDeleting = false }
+
+        try await auth.deleteAccount(googleIDToken: idToken)
+    }
+
+    func confirmDeleteWithPassword(_ password: String) async {
+        isDeleting = true
+        defer { isDeleting = false }
+        deleteAccountPassword = ""
+
         do {
-            try await auth.deleteAccount()
+            try await auth.validateEmailPassword(password)
+            try await auth.deleteAccount(emailPassword: password)
         } catch let error as AppError {
             errorMessage = error.errorDescription
         } catch {
